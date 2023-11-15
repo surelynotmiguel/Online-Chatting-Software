@@ -6,7 +6,12 @@ import javax.swing.JLabel;
 import java.awt.FlowLayout;
 
 public class AboutDialog extends JDialog {
-    public AboutDialog(JFrame parent) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public AboutDialog(JFrame parent) {
         super(parent, "Sobre", true);
         initializeUI();
     }

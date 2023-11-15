@@ -12,7 +12,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 
 public class ChatFrame extends JFrame {
-    private JTextArea conversationArea;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private JTextArea conversationArea;
 
     public ChatFrame() {
         initializeUI();

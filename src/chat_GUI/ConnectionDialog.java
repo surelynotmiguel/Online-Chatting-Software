@@ -6,7 +6,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class ConnectionDialog extends JDialog {
-    private JTextField ipField;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 992994705610187333L;
+	private JTextField ipField;
     private JTextField portField;
 
     public ConnectionDialog(Frame parent) {
