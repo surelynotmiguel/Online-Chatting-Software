@@ -1,4 +1,4 @@
-package chat_GUI;
+package gui;
 
 class GlobalConstants {
 	public static final String autor1 = "Felipe Akira Nozaki - 172885";

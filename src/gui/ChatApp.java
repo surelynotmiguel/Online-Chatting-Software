@@ -1,4 +1,4 @@
-package chat_GUI;
+package gui;
 import java.awt.HeadlessException;
 
 public class ChatApp {

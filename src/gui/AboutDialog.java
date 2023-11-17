@@ -1,4 +1,4 @@
-package chat_GUI;
+package gui;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -18,7 +18,7 @@ public class AboutDialog extends JDialog {
 
     private void initializeUI() {
         setLayout(new FlowLayout());
-        JLabel label = new JLabel("<html>" + "Chat Application Version 1.0" + "<br>" + "<br>" +"Created by:" + "<br>" + "Julio Morino Anastácio | 173434" + "<br>" + "\nFelipe Akira Nozaki | 172885" + "<br>" + "\nMiguel Miranda Melo Donanzam | 260851" + "</html>");
+        JLabel label = new JLabel("<html>" + "Chat Application Version 1.1" + "<br>" + "<br>" +"Created by:" + "<br>" + "Julio Morino Anastácio | 173434" + "<br>" + "\nFelipe Akira Nozaki | 172885" + "<br>" + "\nMiguel Miranda Melo Donanzam | 260851" + "<br>" + "<br>" + "Last modified: November 17th, 2023" + "</html>");
         add(label);
         setSize(300, 200);
         setLocationRelativeTo(null);

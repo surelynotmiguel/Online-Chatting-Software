@@ -1,4 +1,4 @@
-package chat_GUI;
+package gui;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
