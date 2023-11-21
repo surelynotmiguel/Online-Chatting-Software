@@ -2,8 +2,10 @@ package gui;
 
 import javax.swing.*;
 
-import connection.ChatConnection;
+import connection.ChatClient;
+import connection.ChatServer;
 import dto.ChatDTO;
+import filehandler.AudioPlayer;
 import filehandler.FileSender;
 
 import java.awt.*;
@@ -26,14 +28,19 @@ public class ChatFrame extends JFrame implements ActionListener{
 	private JMenuItem connectItem, exitItem, helpItem, aboutItem;
 	private JLabel statusBar;
 	private ChatDTO userInfo;
-	private ChatConnection chatConnection;
+	private static ChatFrame instance;
 
     public ChatFrame() {
         super(GlobalConstants.getNameVersion());
+        instance = this;
         configureFrame();
         createAndAddMenuBar();
         addListenersMenu(this);
         addComponents();
+    }
+    
+    public static ChatFrame getInstance() {
+    	return instance;
     }
     
     public void start() {
@@ -123,6 +130,7 @@ public class ChatFrame extends JFrame implements ActionListener{
         if(event.getSource() == exitItem) {
         	int option = JOptionPane.showConfirmDialog(ChatFrame.this, "Are you sure?", "Exit", JOptionPane.YES_NO_OPTION);
             if (option == JOptionPane.YES_OPTION) {
+            	ChatServer.disconnect();
                 System.exit(0);
             }
         }
@@ -146,31 +154,32 @@ public class ChatFrame extends JFrame implements ActionListener{
     public void updateConnectionStatus(boolean connected) {
         if (connected) {
             statusBar.setText("Connection Status: Connected");
-            // Solicitar ao usuário que insira um nome de usuário
-            if(insertUsername());
-            else {
-                // Se o usuário cancelar ou não fornecer um nome de usuário, faça alguma ação apropriada (por exemplo, desconectar)
-            	chatConnection.disconnect();
-                statusBar.setText("Connection Status: Disconnected");
-            }
         } else {
-            statusBar.setText("Connection Status: Couldn't Connect");
+            statusBar.setText("Connection Status: Disconnected");
         }
     }
     
-    public boolean insertUsername() {
-    	String username = JOptionPane.showInputDialog(ChatFrame.this, "Enter username: ");
+    public void insertUsername() {
+        String username = null;
 
-        if (username != null && !username.isEmpty()) {
-            userInfo = new ChatDTO(username, " just joined!", new Date());
-            // Enviar 'userInfo' para o servidor
+        do {
+            username = JOptionPane.showInputDialog(ChatFrame.this, "Enter username: ");
 
-            // Adicione lógica para exibir uma mensagem indicando a entrada do usuário na conversa
-            addMessageToConversation("Welcome, " + username + "!");
-            return true;
-        } else {
-        	return false;
-        }
+            if (username != null && !username.trim().isEmpty()) {
+                // Enviar 'userInfo' para o servidor
+                userInfo = new ChatDTO(username, "just joined!", new Date());
+
+                // Adicione lógica para exibir uma mensagem indicando a entrada do usuário na conversa
+                addMessageToConversation(userInfo);
+            } else if (username != null) {
+                JOptionPane.showMessageDialog(ChatFrame.this, "You didn't enter a valid username!", "Error", JOptionPane.WARNING_MESSAGE);
+            } else {
+                // Se o usuário clicar em Cancelar, saia do loop
+            	ChatServer.disconnect();
+            	JOptionPane.showMessageDialog(ChatFrame.this, "You've been disconnected.", "Connection", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+        } while (username == null || username.trim().isEmpty());
     }
     
     private void addContentPanel() {
@@ -201,8 +210,77 @@ public class ChatFrame extends JFrame implements ActionListener{
     	contentPanel.add(chatPanel, BorderLayout.CENTER);
     }
     
-    private void addMessageToConversation(String message) {
-        conversationArea.append(userInfo.getUsername() + message + userInfo.getDateTimeOfMessage() + "\n");
+    public String formatMessage(String message) {
+        final int MAX_CHARACTERS_PER_LINE = 80;
+        StringBuilder formattedMessage = new StringBuilder();
+
+        for (int i = 0; i < message.length(); i += MAX_CHARACTERS_PER_LINE) {
+            int endIndex = Math.min(i + MAX_CHARACTERS_PER_LINE, message.length());
+            formattedMessage.append(message.substring(i, endIndex));
+
+            if (endIndex < message.length()) {
+                formattedMessage.append("\n");
+            }
+        }
+
+        return formattedMessage.toString();
+    }
+
+    public void sendMessage() {
+        addMessageToConversation(new ChatDTO("Eu", textField.getText(), new Date()));
+        textField.setText("");
+    }
+    
+    public void sendFileMessage(File file) {
+    	addFileSentMessageToConversation(new ChatDTO("Eu", textField.getText().isBlank() ? null : textField.getText(), new Date(), file));
+    }
+    
+    public void addMessageToConversation(ChatDTO receivedMessage) {
+        if (receivedMessage.getMessageFile() != null) {
+            String fileName = receivedMessage.getMessageFile().getName();
+            String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
+
+            SwingUtilities.invokeLater(() -> conversationArea.append(receivedMessage.getUsername() + "\n"));
+            if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png") || extension.equalsIgnoreCase("gif")) {
+                // Se for uma imagem
+                ImageIcon imageIcon = new ImageIcon(receivedMessage.getMessageFile().getAbsolutePath());
+                Image image = imageIcon.getImage();
+                Image resizedImage = image.getScaledInstance(200, 200, Image.SCALE_SMOOTH); // Tamanho personalizado da imagem
+                ImageIcon resizedImageIcon = new ImageIcon(resizedImage);
+
+                JLabel imageLabel = new JLabel();
+                imageLabel.setIcon(resizedImageIcon);
+                conversationArea.add(imageLabel);
+            } else if (extension.equalsIgnoreCase("mp3") || extension.equalsIgnoreCase("wav")) {
+                // Se for um arquivo de áudio
+                JButton audioPlayerButton = new JButton("Play Audio");
+                audioPlayerButton.addActionListener(e -> {
+                    try {
+                        AudioPlayer.playAudio(receivedMessage.getMessageFile().getAbsolutePath());
+                    } catch (Exception ex) {
+                        ex.printStackTrace(); // Trate a exceção conforme necessário
+                    }
+                });
+                conversationArea.add(audioPlayerButton);
+            } else {
+                // Outros tipos de arquivos - apenas exibe o nome do arquivo
+                JLabel fileLabel = new JLabel(fileName);
+                conversationArea.add(fileLabel);
+            }
+
+            // Adicione a data/hora da mensagem depois do arquivo ou da imagem
+            SwingUtilities.invokeLater(() -> conversationArea.append("\n" + receivedMessage.getDateTimeOfMessage() + "\n\n"));
+        } else {
+            // Se não for um arquivo, exibe o texto da mensagem
+            String message = receivedMessage.getMessage();
+            SwingUtilities.invokeLater(() -> conversationArea.append(receivedMessage.getUsername() + ":\n" + formatMessage(message) + "\n" + receivedMessage.getDateTimeOfMessage() + "\n\n"));
+        }
+    }
+
+    
+    public void addFileSentMessageToConversation(ChatDTO receivedFileMessage) {
+        addMessageToConversation(receivedFileMessage);
+        textField.setText("");
     }
     
     private void addMessageInput() {
@@ -225,13 +303,15 @@ public class ChatFrame extends JFrame implements ActionListener{
     	sendButton = new JButton("Send");
     	messageInputPanel.add(textField, BorderLayout.CENTER);
     	messageInputPanel.add(sendButton, BorderLayout.EAST);
-    	sendButton.addActionListener(new ActionListener() {
-    		public void actionPerformed(ActionEvent e) {
-    			if(userInfo != null) {
-    				addMessageToConversation(textField.getText());
+    	sendButton.addActionListener(e -> {
+    		if(userInfo != null) {
+    			if(!textField.getText().isEmpty() || !textField.getText().isBlank()) {
+    				sendMessage();
     			} else {
-    				JOptionPane.showMessageDialog(null, "You're not connected.");
+    				JOptionPane.showMessageDialog(ChatFrame.this, "Please enter a message before sending.", "Connection", JOptionPane.WARNING_MESSAGE);
     			}
+    		} else {
+    			JOptionPane.showMessageDialog(ChatFrame.this, "You're not connected.", "Connection", JOptionPane.WARNING_MESSAGE);
     		}
     	});
     	
@@ -246,17 +326,17 @@ public class ChatFrame extends JFrame implements ActionListener{
 
         	            try {
         	                // Suponha que 'socket' seja a instância do socket para a conexão
-        	                FileSender fileSender = new FileSender(ChatConnection.getSocket());
+        	                FileSender fileSender = new FileSender(ChatClient.getSocket());
         	                fileSender.sendFile(selectedFile.getAbsolutePath());
 
         	                // Aqui você pode adicionar lógica para exibir uma mensagem indicando o envio do arquivo na conversa
-        	                addMessageToConversation("File sent: " + selectedFile.getName());
+        	                sendFileMessage(selectedFile);
         	            } catch (IOException ex) {
         	                ex.printStackTrace(); // Trate a exceção conforme necessário
         	            }
         	        }
     	    	} else {
-    	    		JOptionPane.showMessageDialog(null, "You're not connected.");
+    	    		JOptionPane.showMessageDialog(ChatFrame.this, "You're not connected.", "Connection", JOptionPane.WARNING_MESSAGE);
     	    	}
     	    }
     	});

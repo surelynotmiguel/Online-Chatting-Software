@@ -2,7 +2,8 @@ package gui;
 
 import javax.swing.*;
 
-import connection.ChatConnection;
+import connection.ChatClient;
+import connection.ChatServer;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -15,11 +16,9 @@ public class ConnectionDialog extends JDialog {
 	private static final long serialVersionUID = 992994705610187333L;
 	private JTextField ipField;
 	private JTextField portField;
-	private ChatConnection chatConnection;
 
     public ConnectionDialog(Frame parent) {
         super(parent, "Connection", true);
-        this.chatConnection = new ChatConnection();
         initializeUI();
     }
 
@@ -43,10 +42,15 @@ public class ConnectionDialog extends JDialog {
                 // Lógica para lidar com a conexão aqui
             	String ipAddress = ipField.getText();
                 int port = Integer.parseInt(portField.getText());
+                
+        		new Thread(() -> ChatServer.start(port)).start();
+        		new Thread(() -> ChatClient.start(ipAddress, port)).start();
 
-                boolean connected = chatConnection.connectToServer(ipAddress, port);
-
-                if (connected) {
+        		((ChatFrame) getParent()).insertUsername();
+            	((ChatFrame) getParent()).updateConnectionStatus(true);
+                JOptionPane.showMessageDialog(ConnectionDialog.this, "Connection successfully established!", "Connection", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+                /*if (ChatClient.getConnectionStatus()) {
                 	((ChatFrame) getParent()).updateConnectionStatus(true);
                     JOptionPane.showMessageDialog(ConnectionDialog.this,
                             "Connection successfully established!", "Connection", JOptionPane.INFORMATION_MESSAGE);
@@ -54,10 +58,11 @@ public class ConnectionDialog extends JDialog {
                     
                     dispose(); // Fechar a caixa de diálogo após a conexão
                 } else {
+                	System.out.println(ChatClient.getConnectionStatus());
                 	((ChatFrame) getParent()).updateConnectionStatus(false);
                     JOptionPane.showMessageDialog(ConnectionDialog.this,
                             "Failed to connect. Please verify IP address and port.", "Connection Error", JOptionPane.ERROR_MESSAGE);
-                }
+                }*/
             }
         });
 

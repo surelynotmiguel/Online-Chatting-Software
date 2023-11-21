@@ -6,8 +6,8 @@ import java.net.Socket;
 public class FileSender {
     private Socket socket;
 
-    public FileSender(Socket socket) {
-        this.socket = socket;
+    public FileSender(Socket serverSocket) {
+        this.socket = serverSocket;
     }
 
     public void sendFile(String filePath) throws IOException {
