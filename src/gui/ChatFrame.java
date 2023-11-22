@@ -227,12 +227,17 @@ public class ChatFrame extends JFrame implements ActionListener{
     }
 
     public void sendMessage() {
-        addMessageToConversation(new ChatDTO("Eu", textField.getText(), new Date()));
+    	String message = textField.getText();
+    	ChatClient.sendMessage(message);
+        addMessageToConversation(new ChatDTO("Eu", message, new Date()));
         textField.setText("");
     }
     
     public void sendFileMessage(File file) {
-    	addFileSentMessageToConversation(new ChatDTO("Eu", textField.getText().isBlank() ? null : textField.getText(), new Date(), file));
+    	String message = textField.getText();
+    	ChatClient.sendFileMessage(message, file);
+    	addFileSentMessageToConversation(new ChatDTO("Eu", message, new Date(), file));
+    	textField.setText("");
     }
     
     public void addMessageToConversation(ChatDTO receivedMessage) {
@@ -240,7 +245,7 @@ public class ChatFrame extends JFrame implements ActionListener{
             String fileName = receivedMessage.getMessageFile().getName();
             String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
 
-            SwingUtilities.invokeLater(() -> conversationArea.append(receivedMessage.getUsername() + "\n"));
+            SwingUtilities.invokeLater(() -> conversationArea.append(receivedMessage.getUsername() + ":\n" + (receivedMessage.getMessage().isBlank() ? "" : receivedMessage.getMessage() + "\n")));
             if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png") || extension.equalsIgnoreCase("gif")) {
                 // Se for uma imagem
                 ImageIcon imageIcon = new ImageIcon(receivedMessage.getMessageFile().getAbsolutePath());
@@ -269,7 +274,7 @@ public class ChatFrame extends JFrame implements ActionListener{
             }
 
             // Adicione a data/hora da mensagem depois do arquivo ou da imagem
-            SwingUtilities.invokeLater(() -> conversationArea.append("\n" + receivedMessage.getDateTimeOfMessage() + "\n\n"));
+            SwingUtilities.invokeLater(() -> conversationArea.append(receivedMessage.getMessageFile().getName() + "\n" + receivedMessage.getDateTimeOfMessage() + "\n\n"));
         } else {
             // Se não for um arquivo, exibe o texto da mensagem
             String message = receivedMessage.getMessage();

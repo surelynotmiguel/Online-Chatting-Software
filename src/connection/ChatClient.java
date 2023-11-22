@@ -1,5 +1,6 @@
 package connection;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -38,6 +39,17 @@ public class ChatClient {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    
+    public static void sendFileMessage(String textContent, File file) {
+    	try {
+    		ChatDTO message = new ChatDTO(SENDER, textContent, new Date(), file);
+    		ChatFrame.getInstance().addFileSentMessageToConversation(message);
+            out.writeObject(message);
+            out.flush();
+    	} catch(IOException e) {
+    		e.printStackTrace();
+    	}
     }
     
     public static boolean getConnectionStatus() {
