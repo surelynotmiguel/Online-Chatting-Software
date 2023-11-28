@@ -12,7 +12,8 @@ public class ChatApp {
         	try {
         		ChatFrame frame = new ChatFrame();
         		frame.start();
-        	
+        		
+        		new Thread(() -> ChatServer.start(1111)).start();
         	} catch(HeadlessException e) {
         		printErrorAndFinish("Program terminated by a HeadlessException in the main() method", e);
         	} catch (Exception e) {

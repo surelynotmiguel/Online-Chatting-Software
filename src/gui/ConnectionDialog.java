@@ -43,12 +43,19 @@ public class ConnectionDialog extends JDialog {
             	String ipAddress = ipField.getText();
                 int port = Integer.parseInt(portField.getText());
                 
-        		new Thread(() -> ChatServer.start(port)).start();
-        		new Thread(() -> ChatClient.start(ipAddress, port)).start();
-
+        		new Thread(() -> ChatClient.start(ipAddress, 1111)).start();
+        		
         		((ChatFrame) getParent()).insertUsername();
-            	((ChatFrame) getParent()).updateConnectionStatus(true);
-                JOptionPane.showMessageDialog(ConnectionDialog.this, "Connection successfully established!", "Connection", JOptionPane.INFORMATION_MESSAGE);
+        		
+        		boolean isConnected = ChatClient.getConnectionStatus();
+            	if(isConnected) {
+                	((ChatFrame) getParent()).updateConnectionStatus(true);
+            		JOptionPane.showMessageDialog(ConnectionDialog.this, "Connection successfully established!", "Connection", JOptionPane.INFORMATION_MESSAGE);
+            	} else {
+                	((ChatFrame) getParent()).updateConnectionStatus(false);
+            		JOptionPane.showMessageDialog(ConnectionDialog.this, "Failed to establish connection.", "Connection", JOptionPane.ERROR_MESSAGE);
+            	}
+                
                 dispose();
                 /*if (ChatClient.getConnectionStatus()) {
                 	((ChatFrame) getParent()).updateConnectionStatus(true);
