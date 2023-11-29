@@ -2,24 +2,31 @@ package filehandler;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+
+import dto.ChatDTO;
+import gui.ChatFrame;
 
 public class FileSender {
-    private Socket socket;
+    public void sendFile(ChatDTO chatDTO, Socket socket) {
+        try {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
 
-    public FileSender(Socket serverSocket) {
-        this.socket = serverSocket;
-    }
+            // Envia o objeto ChatDTO contendo informações do arquivo
+            objectOutputStream.writeObject(chatDTO);
 
-    public void sendFile(String filePath) throws IOException {
-        try (OutputStream outputStream = socket.getOutputStream();
-             FileInputStream fileInputStream = new FileInputStream(filePath)) {
-
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-
-            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
+            // Enviar o arquivo como bytes após o objeto ChatDTO
+            if (chatDTO.getFileContent() != null) {
+                OutputStream outputStream = socket.getOutputStream();
+                outputStream.write(chatDTO.getFileContent());
+                outputStream.flush();
             }
+
+            // Adiciona mensagem à conversa indicando que o arquivo foi enviado
+            ChatFrame.getInstance().addFileSentMessageToConversation(chatDTO);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Error while sending file over socket.");
         }
     }
 }

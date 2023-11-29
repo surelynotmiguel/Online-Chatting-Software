@@ -2,10 +2,8 @@ package gui;
 
 import javax.swing.*;
 
-import connection.ChatClient;
-import connection.ChatServer;
+import connection.ChatConnection;
 import dto.ChatDTO;
-import filehandler.AudioPlayer;
 import filehandler.FileSender;
 
 import java.awt.*;
@@ -14,11 +12,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.IOException;
+import java.io.Serial;
 import java.util.Date;
 
 public class ChatFrame extends JFrame implements ActionListener{
+	@Serial
 	private static final long serialVersionUID = 1L;
+	
 	private JPanel contentPanel;
 	private JTextArea conversationArea;
 	private JTextField textField;
@@ -43,12 +43,20 @@ public class ChatFrame extends JFrame implements ActionListener{
     	return instance;
     }
     
+    public static void setUserInfo(ChatDTO userInfo){
+        getInstance().userInfo = userInfo;
+    }
+
+    public static ChatDTO getUserInfo(){
+        return getInstance().userInfo;
+    } 
+    
     public void start() {
     	this.setVisible(true);
     } 
     
     private void configureFrame() {
-        this.setTitle(GlobalConstants.name);
+        this.setTitle(GlobalConstants.SOFTWARE_NAME);
         this.setSize(800, 600); //initial size
         this.setLocationRelativeTo(null); //centralize window
         this.setBackground(Color.white);
@@ -130,7 +138,7 @@ public class ChatFrame extends JFrame implements ActionListener{
         if(event.getSource() == exitItem) {
         	int option = JOptionPane.showConfirmDialog(ChatFrame.this, "Are you sure?", "Exit", JOptionPane.YES_NO_OPTION);
             if (option == JOptionPane.YES_OPTION) {
-            	ChatServer.disconnect();
+            	ChatConnection.disconnect();
                 System.exit(0);
             }
         }
@@ -157,29 +165,6 @@ public class ChatFrame extends JFrame implements ActionListener{
         } else {
             statusBar.setText("Connection Status: Disconnected");
         }
-    }
-    
-    public void insertUsername() {
-        String username = null;
-
-        do {
-            username = JOptionPane.showInputDialog(ChatFrame.this, "Enter username: ");
-
-            if (username != null && !username.trim().isEmpty()) {
-                // Enviar 'userInfo' para o servidor
-                userInfo = new ChatDTO(username, "just joined!", new Date());
-
-                // Adicione lógica para exibir uma mensagem indicando a entrada do usuário na conversa
-                addMessageToConversation(userInfo);
-            } else if (username != null) {
-                JOptionPane.showMessageDialog(ChatFrame.this, "You didn't enter a valid username!", "Error", JOptionPane.WARNING_MESSAGE);
-            } else {
-                // Se o usuário clicar em Cancelar, saia do loop
-            	ChatServer.disconnect();
-            	JOptionPane.showMessageDialog(ChatFrame.this, "You've been disconnected.", "Connection", JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
-        } while (username == null || username.trim().isEmpty());
     }
     
     private void addContentPanel() {
@@ -214,12 +199,28 @@ public class ChatFrame extends JFrame implements ActionListener{
         final int MAX_CHARACTERS_PER_LINE = 80;
         StringBuilder formattedMessage = new StringBuilder();
 
-        for (int i = 0; i < message.length(); i += MAX_CHARACTERS_PER_LINE) {
-            int endIndex = Math.min(i + MAX_CHARACTERS_PER_LINE, message.length());
-            formattedMessage.append(message.substring(i, endIndex));
+        int startIndex = 0;
+        while (startIndex < message.length()) {
+            int endIndex = Math.min(startIndex + MAX_CHARACTERS_PER_LINE, message.length());
+            String subMessage = message.substring(startIndex, endIndex);
 
+            if (endIndex < message.length() && !Character.isWhitespace(message.charAt(endIndex - 1))) {
+                // Verifica se a última posição não é um espaço em branco para evitar cortar palavras no meio
+                int lastSpaceIndex = subMessage.lastIndexOf(' ');
+                if (lastSpaceIndex > 0) {
+                    endIndex = startIndex + lastSpaceIndex; // Atualiza o índice final para o último espaço
+                    subMessage = message.substring(startIndex, endIndex);
+                }
+            }
+
+            formattedMessage.append(subMessage);
             if (endIndex < message.length()) {
-                formattedMessage.append("\n");
+                formattedMessage.append("-\n");
+            }
+
+            startIndex = endIndex; // Atualiza o índice inicial para a próxima parte do texto
+            while (startIndex < message.length() && Character.isWhitespace(message.charAt(startIndex))) {
+                startIndex++; // Avança para o próximo caractere não branco
             }
         }
 
@@ -228,53 +229,27 @@ public class ChatFrame extends JFrame implements ActionListener{
 
     public void sendMessage() {
     	String message = textField.getText();
-    	ChatClient.sendMessage(message);
-        addMessageToConversation(new ChatDTO("Eu", message, new Date()));
+    	ChatConnection.sendMessage(new ChatDTO(getUserInfo().getUsername(), message, new Date()));
+        addMessageToConversation(new ChatDTO("Me", message, new Date()));
         textField.setText("");
     }
     
     public void sendFileMessage(File file) {
     	String message = textField.getText();
-    	ChatClient.sendFileMessage(message, file);
-    	addFileSentMessageToConversation(new ChatDTO("Eu", message, new Date(), file));
+    	ChatConnection.sendMessage(new ChatDTO(getUserInfo().getUsername(), message, new Date(), file));
+    	addFileSentMessageToConversation(new ChatDTO("Me", message, new Date(), file));
     	textField.setText("");
     }
     
+	public void addFileSavedLocation(String savePath) {
+		SwingUtilities.invokeLater(() -> conversationArea.append("File saved to: " + savePath + "\n\n"));
+	}
+    
     public void addMessageToConversation(ChatDTO receivedMessage) {
         if (receivedMessage.getMessageFile() != null) {
+            String message = receivedMessage.getMessage();
             String fileName = receivedMessage.getMessageFile().getName();
-            String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
-
-            SwingUtilities.invokeLater(() -> conversationArea.append(receivedMessage.getUsername() + ":\n" + (receivedMessage.getMessage().isBlank() ? "" : receivedMessage.getMessage() + "\n")));
-            if (extension.equalsIgnoreCase("jpg") || extension.equalsIgnoreCase("png") || extension.equalsIgnoreCase("gif")) {
-                // Se for uma imagem
-                ImageIcon imageIcon = new ImageIcon(receivedMessage.getMessageFile().getAbsolutePath());
-                Image image = imageIcon.getImage();
-                Image resizedImage = image.getScaledInstance(200, 200, Image.SCALE_SMOOTH); // Tamanho personalizado da imagem
-                ImageIcon resizedImageIcon = new ImageIcon(resizedImage);
-
-                JLabel imageLabel = new JLabel();
-                imageLabel.setIcon(resizedImageIcon);
-                conversationArea.add(imageLabel);
-            } else if (extension.equalsIgnoreCase("mp3") || extension.equalsIgnoreCase("wav")) {
-                // Se for um arquivo de áudio
-                JButton audioPlayerButton = new JButton("Play Audio");
-                audioPlayerButton.addActionListener(e -> {
-                    try {
-                        AudioPlayer.playAudio(receivedMessage.getMessageFile().getAbsolutePath());
-                    } catch (Exception ex) {
-                        ex.printStackTrace(); // Trate a exceção conforme necessário
-                    }
-                });
-                conversationArea.add(audioPlayerButton);
-            } else {
-                // Outros tipos de arquivos - apenas exibe o nome do arquivo
-                JLabel fileLabel = new JLabel(fileName);
-                conversationArea.add(fileLabel);
-            }
-
-            // Adicione a data/hora da mensagem depois do arquivo ou da imagem
-            SwingUtilities.invokeLater(() -> conversationArea.append(receivedMessage.getMessageFile().getName() + "\n" + receivedMessage.getDateTimeOfMessage() + "\n\n"));
+            SwingUtilities.invokeLater(() -> conversationArea.append(receivedMessage.getUsername() + ":\n" + (message.isBlank() ? "" : formatMessage(message) + "\n" + fileName + "\n" + receivedMessage.getDateTimeOfMessage() + "\n")));
         } else {
             // Se não for um arquivo, exibe o texto da mensagem
             String message = receivedMessage.getMessage();
@@ -282,7 +257,6 @@ public class ChatFrame extends JFrame implements ActionListener{
         }
     }
 
-    
     public void addFileSentMessageToConversation(ChatDTO receivedFileMessage) {
         addMessageToConversation(receivedFileMessage);
         textField.setText("");
@@ -329,14 +303,15 @@ public class ChatFrame extends JFrame implements ActionListener{
         	        if (option == JFileChooser.APPROVE_OPTION) {
         	            File selectedFile = fileChooser.getSelectedFile();
 
+        	            ChatDTO chatDTO = new ChatDTO(getUserInfo().getUsername(), "", new Date(), selectedFile);
         	            try {
         	                // Suponha que 'socket' seja a instância do socket para a conexão
-        	                FileSender fileSender = new FileSender(ChatClient.getSocket());
-        	                fileSender.sendFile(selectedFile.getAbsolutePath());
+        	                FileSender fileSender = new FileSender();
+        	                fileSender.sendFile(chatDTO, ChatConnection.getClientSocket());
 
         	                // Aqui você pode adicionar lógica para exibir uma mensagem indicando o envio do arquivo na conversa
         	                sendFileMessage(selectedFile);
-        	            } catch (IOException ex) {
+        	            } catch (Exception ex) {
         	                ex.printStackTrace(); // Trate a exceção conforme necessário
         	            }
         	        }

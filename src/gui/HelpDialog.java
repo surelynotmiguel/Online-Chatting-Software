@@ -3,6 +3,8 @@ package gui;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.border.EmptyBorder;
+
 import java.awt.FlowLayout;
 
 public class HelpDialog extends JDialog {
@@ -18,9 +20,10 @@ public class HelpDialog extends JDialog {
 
     private void initializeUI() {
         setLayout(new FlowLayout());
-        JLabel label = new JLabel("<html>" + "Welcome to Chat Application 1.4!" + "<br>" + "<br>" +"Want to start a chat? Go to:" + "<br>" + "File ➜ Connection"  + "</html>");
+        JLabel label = new JLabel("<html>" + "Welcome to " + GlobalConstants.getNameVersion() + "<br><br>" +"Want to start a chat? Go to:" + "<br>" + "<center>File ➜ Connection</center>" + "</html>");
+        label.setBorder(new EmptyBorder(10, 20, 20, 20));
         add(label);
-        setSize(300, 150);
+        pack();
         setLocationRelativeTo(null);
     }
 }

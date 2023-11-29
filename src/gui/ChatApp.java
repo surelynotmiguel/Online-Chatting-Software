@@ -1,10 +1,9 @@
 package gui;
+
 import java.awt.HeadlessException;
-
 import javax.swing.SwingUtilities;
+import connection.ChatConnection;
 
-import connection.ChatClient;
-import connection.ChatServer;
 
 public class ChatApp {
     public static void main(String[] args) {
@@ -13,7 +12,7 @@ public class ChatApp {
         		ChatFrame frame = new ChatFrame();
         		frame.start();
         		
-        		new Thread(() -> ChatServer.start(1111)).start();
+        		new Thread(ChatConnection::startServer).start();
         	} catch(HeadlessException e) {
         		printErrorAndFinish("Program terminated by a HeadlessException in the main() method", e);
         	} catch (Exception e) {
