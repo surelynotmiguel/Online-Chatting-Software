@@ -7,43 +7,59 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import dto.ChatDTO;
-import filehandler.FileReceiver;
+import connection.filehandler.FileReceiver;
 import gui.ChatFrame;
 
+/**
+ * The ChatConnection class manages the client-server communication for the chat application.
+ */
 public class ChatConnection {
-	private static Socket client;
+    private static Socket client;
     private static Socket server;
 
+    /**
+     * Starts the server to accept incoming connections.
+     */
     public static void startServer() {
         ServerSocket serverSocket = null;
 
         try {
             serverSocket = new ServerSocket(9999);
-
             server = serverSocket.accept();
 
             Thread receiveMessageThread = new Thread(() -> receiveMessage(server));
             receiveMessageThread.start();
         } catch (IOException e) {
             e.printStackTrace();
-        } 
+        }
     }
-    
+
+    /**
+     * Starts the client and connects to the specified host.
+     *
+     * @param host The host address to connect to
+     */
     public static void startClient(String host) {
         try {
             client = new Socket(host, 9999);
 
-            Thread threadReceber = new Thread(() -> receiveMessage(client));
-            threadReceber.start();
+            Thread receiveThread = new Thread(() -> receiveMessage(client));
+            receiveThread.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Listens for incoming messages from the specified socket.
+     *
+     * @param socket The socket to listen for incoming messages
+     */
     public static void receiveMessage(Socket socket) {
         while (true) {
             try {
                 ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+
                 try {
                     Object receivedObject = objectInputStream.readObject();
 
@@ -51,7 +67,7 @@ public class ChatConnection {
                         ChatDTO chatDTO = (ChatDTO) receivedObject;
 
                         if (chatDTO.getMessageFile() != null) {
-                        	FileReceiver fileReceiver = new FileReceiver();
+                            FileReceiver fileReceiver = new FileReceiver();
                             fileReceiver.receiveFile(socket);
                             ChatFrame.getInstance().addFileSentMessageToConversation(chatDTO);
                         } else {
@@ -69,6 +85,11 @@ public class ChatConnection {
         }
     }
 
+    /**
+     * Sends a message using the client socket.
+     *
+     * @param chatDTO The ChatDTO object containing the message
+     */
     public static void sendMessage(ChatDTO chatDTO) {
         try {
             if (client != null) {
@@ -79,21 +100,29 @@ public class ChatConnection {
             e.printStackTrace();
         }
     }
-    
+
+    /**
+     * Retrieves the client socket.
+     *
+     * @return The client socket
+     */
     public static Socket getClientSocket() {
-    	return client;
+        return client;
     }
 
-	public static void disconnect() {
-    	try {
-    		if(server != null && !server.isClosed()) {
-    			server.close();
-    		}
-    		if(client != null && !client.isClosed()) {
-    			client.close();
-    		}
-    	} catch(IOException e) {
-    		System.err.println("Error disconnecting: " + e.getMessage());
-    	}
+    /**
+     * Disconnects both client and server sockets.
+     */
+    public static void disconnect() {
+        try {
+            if (server != null && !server.isClosed()) {
+                server.close();
+            }
+            if (client != null && !client.isClosed()) {
+                client.close();
+            }
+        } catch (IOException e) {
+            System.err.println("Error disconnecting: " + e.getMessage());
+        }
     }
 }

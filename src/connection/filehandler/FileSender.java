@@ -1,28 +1,35 @@
-package filehandler;
+package connection.filehandler;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Files;
-
 import dto.ChatDTO;
 import gui.ChatFrame;
 
+/**
+ * The FileSender class handles sending files over a socket connection.
+ */
 public class FileSender {
+    /**
+     * Sends a file using the provided ChatDTO and Socket.
+     *
+     * @param chatDTO The ChatDTO containing information about the file
+     * @param socket  The socket over which the file will be sent
+     */
     public void sendFile(ChatDTO chatDTO, Socket socket) {
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
 
-            // Envia o objeto ChatDTO contendo informações do arquivo
+            // Sends the ChatDTO object containing file information
             objectOutputStream.writeObject(chatDTO);
 
-            // Enviar o arquivo como bytes após o objeto ChatDTO
+            // Sends the file as bytes after the ChatDTO object
             if (chatDTO.getFileContent() != null) {
                 OutputStream outputStream = socket.getOutputStream();
                 outputStream.write(chatDTO.getFileContent());
                 outputStream.flush();
             }
 
-            // Adiciona mensagem à conversa indicando que o arquivo foi enviado
+            // Adds a message to the conversation indicating that the file has been sent
             ChatFrame.getInstance().addFileSentMessageToConversation(chatDTO);
         } catch (IOException e) {
             e.printStackTrace();

@@ -4,7 +4,7 @@ import javax.swing.*;
 
 import connection.ChatConnection;
 import dto.ChatDTO;
-import filehandler.FileSender;
+import connection.filehandler.FileSender;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -15,6 +15,9 @@ import java.io.File;
 import java.io.Serial;
 import java.util.Date;
 
+/**
+ * The ChatFrame class represents the main graphical user interface for the chat application.
+ */
 public class ChatFrame extends JFrame implements ActionListener{
 	@Serial
 	private static final long serialVersionUID = 1L;
@@ -30,6 +33,10 @@ public class ChatFrame extends JFrame implements ActionListener{
 	private ChatDTO userInfo;
 	private static ChatFrame instance;
 
+    /**
+     * Constructs a ChatFrame object.
+     * Initializes the GUI components and sets up the frame.
+     */
     public ChatFrame() {
         super(GlobalConstants.getNameVersion());
         instance = this;
@@ -39,22 +46,43 @@ public class ChatFrame extends JFrame implements ActionListener{
         addComponents();
     }
     
+    /**
+     * Gets the instance of the ChatFrame (Singleton pattern).
+     *
+     * @return The instance of ChatFrame
+     */
     public static ChatFrame getInstance() {
     	return instance;
     }
     
+    /**
+     * Sets the user information for the chat.
+     *
+     * @param userInfo The user information (ChatDTO)
+     */
     public static void setUserInfo(ChatDTO userInfo){
         getInstance().userInfo = userInfo;
     }
 
+    /**
+     * Gets the user information for the chat.
+     *
+     * @return The user information (ChatDTO)
+     */
     public static ChatDTO getUserInfo(){
         return getInstance().userInfo;
     } 
     
+    /**
+     * Shows the chat frame.
+     */
     public void start() {
     	this.setVisible(true);
     } 
     
+    /**
+     * Configures the frame properties.
+     */
     private void configureFrame() {
         this.setTitle(GlobalConstants.SOFTWARE_NAME);
         this.setSize(800, 600); //initial size
@@ -68,12 +96,16 @@ public class ChatFrame extends JFrame implements ActionListener{
             public void windowClosing(WindowEvent e) {
                 int option = JOptionPane.showConfirmDialog(ChatFrame.this, "Are you sure?", "Exit", JOptionPane.YES_NO_OPTION);
                 if (option == JOptionPane.YES_OPTION) {
+                	ChatConnection.disconnect();
                     System.exit(0);
                 }
             }
         });
     }
     
+    /**
+     * Creates and adds the menu bar with menu items.
+     */
     private void createAndAddMenuBar() {
     	menuBar = new JMenuBar();
 
@@ -105,6 +137,11 @@ public class ChatFrame extends JFrame implements ActionListener{
         this.setJMenuBar(menuBar);
     }
     
+    /**
+     * Adds action listeners to the menu items.
+     *
+     * @param listener The ActionListener
+     */
     private void addListenersMenu(ActionListener listener) {
     	for(Component menu : this.getJMenuBar().getComponents()) {
     		if(menu instanceof JMenu) {
@@ -113,6 +150,12 @@ public class ChatFrame extends JFrame implements ActionListener{
     	}
     }
     
+    /**
+     * Adds action listeners to the menu items in the given menu.
+     *
+     * @param listener The ActionListener
+     * @param menu     The JMenu where action listeners need to be added
+     */
     private void addListenersItemMenu(ActionListener listener, JMenu menu) {
     	for (Component item : menu.getMenuComponents()) {
     		if(item instanceof JMenuItem) {
@@ -121,13 +164,17 @@ public class ChatFrame extends JFrame implements ActionListener{
     	}
     }
     
+    /**
+     * Handles actions performed on menu items.
+     *
+     * @param event The ActionEvent
+     */
     public void actionPerformed(ActionEvent event) {
     	if(event.getSource() == connectItem) {
     		ConnectionDialog dialog = new ConnectionDialog(ChatFrame.this);
             dialog.setSize(300, 150);
             dialog.setLocationRelativeTo(ChatFrame.this);
             dialog.setVisible(true);
-            //(new ConnectionDialog(ChatFrame.this))
     	}
     	if(event.getSource() == aboutItem) {
     		(new AboutDialog(ChatFrame.this)).setVisible(true);
@@ -144,6 +191,9 @@ public class ChatFrame extends JFrame implements ActionListener{
         }
     }
     
+    /**
+     * Adds components to the chat frame.
+     */
     private void addComponents() {
     	addStatusBar();
     	addContentPanel();
@@ -151,6 +201,9 @@ public class ChatFrame extends JFrame implements ActionListener{
     	addMessageInput();
     }
     
+    /**
+     * Adds the status bar at the bottom of the chat frame.
+     */
     private void addStatusBar() {
     	JPanel statusPanel = new JPanel();
     	statusPanel.setBackground(Color.white);
@@ -159,6 +212,11 @@ public class ChatFrame extends JFrame implements ActionListener{
     	this.add(statusPanel, BorderLayout.SOUTH);
     }
     
+    /**
+     * Updates the connection status in the status bar.
+     *
+     * @param connected A boolean representing the connection status
+     */
     public void updateConnectionStatus(boolean connected) {
         if (connected) {
             statusBar.setText("Connection Status: Connected");
@@ -167,6 +225,9 @@ public class ChatFrame extends JFrame implements ActionListener{
         }
     }
     
+    /**
+     * Adds the content panel to the chat frame.
+     */
     private void addContentPanel() {
     	contentPanel = new JPanel(new BorderLayout());
     	
@@ -180,6 +241,9 @@ public class ChatFrame extends JFrame implements ActionListener{
     	this.add(contentPanel, BorderLayout.CENTER);
     }
     
+    /**
+     * Adds the conversation area to display chat messages.
+     */
     private void addConversationArea() {
     	JPanel chatPanel = new JPanel(new BorderLayout());
     	
@@ -195,6 +259,12 @@ public class ChatFrame extends JFrame implements ActionListener{
     	contentPanel.add(chatPanel, BorderLayout.CENTER);
     }
     
+    /**
+     * Formats the chat message for display in the conversation area.
+     *
+     * @param message The message to be formatted
+     * @return The formatted message as a String
+     */
     public String formatMessage(String message) {
         final int MAX_CHARACTERS_PER_LINE = 80;
         StringBuilder formattedMessage = new StringBuilder();
@@ -227,6 +297,9 @@ public class ChatFrame extends JFrame implements ActionListener{
         return formattedMessage.toString();
     }
 
+    /**
+     * Sends a text message in the chat.
+     */
     public void sendMessage() {
     	String message = textField.getText();
     	ChatConnection.sendMessage(new ChatDTO(getUserInfo().getUsername(), message, new Date()));
@@ -234,6 +307,11 @@ public class ChatFrame extends JFrame implements ActionListener{
         textField.setText("");
     }
     
+    /**
+     * Sends a file message in the chat.
+     *
+     * @param file The file to be sent
+     */
     public void sendFileMessage(File file) {
     	String message = textField.getText();
     	ChatConnection.sendMessage(new ChatDTO(getUserInfo().getUsername(), message, new Date(), file));
@@ -241,10 +319,20 @@ public class ChatFrame extends JFrame implements ActionListener{
     	textField.setText("");
     }
     
+    /**
+     * Adds the file save location to the conversation area.
+     *
+     * @param savePath The path where the file is saved
+     */
 	public void addFileSavedLocation(String savePath) {
 		SwingUtilities.invokeLater(() -> conversationArea.append("File saved to: " + savePath + "\n\n"));
 	}
     
+    /**
+     * Adds a received message to the conversation area.
+     *
+     * @param receivedMessage The received chat message
+     */
     public void addMessageToConversation(ChatDTO receivedMessage) {
         if (receivedMessage.getMessageFile() != null) {
             String message = receivedMessage.getMessage();
@@ -257,11 +345,19 @@ public class ChatFrame extends JFrame implements ActionListener{
         }
     }
 
+    /**
+     * Adds a file-sent message to the conversation area.
+     *
+     * @param receivedFileMessage The file-sent chat message
+     */
     public void addFileSentMessageToConversation(ChatDTO receivedFileMessage) {
         addMessageToConversation(receivedFileMessage);
         textField.setText("");
     }
     
+    /**
+     * Adds the message input area for sending messages.
+     */
     private void addMessageInput() {
     	JPanel panel = new JPanel(new BorderLayout());
     	
