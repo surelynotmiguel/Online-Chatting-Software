@@ -25,25 +25,28 @@ public class ConnectionDialog extends JDialog {
     public ConnectionDialog(Frame parent) {
         super(parent, "Connection", true);
         initializeUI();
+        setResizable(false);
     }
 
     /**
      * Initializes the UI components and layout for the ConnectionDialog.
      */
     private void initializeUI() {
-        JPanel panel = new JPanel(new GridLayout(3, 2)); // Panel with grid layout to organize components
+        JPanel panel = new JPanel(); // Panel with grid layout to organize components
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         JLabel ipLabel = new JLabel("IP Address:");
-        ipField = new JTextField();
+        ipField = new JTextField(15);
         JLabel usernameLabel = new JLabel("Username:");
-        usernameField = new JTextField();
+        usernameField = new JTextField(15);
 
         // Add components to the panel
-        panel.add(ipLabel);
-        panel.add(ipField);
-        panel.add(usernameLabel);
-        panel.add(usernameField);
+        panel.add(createPanel(ipLabel, ipField));
+        panel.add(createPanel(usernameLabel, usernameField));
 
+        // Adds a space between inputs and connect button
+        panel.add(Box.createVerticalStrut(10));
+        
         JButton connectButton = new JButton("Connect");
         connectButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -68,6 +71,7 @@ public class ConnectionDialog extends JDialog {
             }
         });
 
+        connectButton.setFont(connectButton.getFont().deriveFont(12f));
         // Add the button to the panel
         panel.add(connectButton);
 
@@ -92,5 +96,19 @@ public class ConnectionDialog extends JDialog {
             JOptionPane.showMessageDialog(ConnectionDialog.this, "Invalid username.", "Warning", JOptionPane.WARNING_MESSAGE);
             return false;
         }
+    }
+    
+    /**
+     * Creates a panel with a GridLayout to organize the labels and input.
+     *
+     * @param label Label
+     * @param field Input field
+     * @return A JPanel with a label and input field
+     */
+    private JPanel createPanel(JLabel label, JTextField field) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT)); // Uses FlowLayout to align the components to the right
+        panel.add(label);
+        panel.add(field);
+        return panel;
     }
 }

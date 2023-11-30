@@ -20,6 +20,7 @@ public class HelpDialog extends JDialog {
     public HelpDialog(JFrame parent) {
         super(parent, "Help", true);
         initializeUI();
+        setResizable(false);
     }
 
     /**
@@ -28,7 +29,7 @@ public class HelpDialog extends JDialog {
     private void initializeUI() {
         setLayout(new FlowLayout());
         JLabel label = new JLabel("<html>" + "Welcome to " + GlobalConstants.getNameVersion() + "<br><br>" +
-                "Want to start a chat? Go to:<br><center>File ➜ Connection</center>" + "</html>");
+                "Want to start a chat? Go to:&nbsp;&nbsp;File ➜ Connection" + "</html>");
         label.setBorder(new EmptyBorder(10, 20, 20, 20));
         add(label);
         pack();

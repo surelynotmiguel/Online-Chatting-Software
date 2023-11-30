@@ -1,5 +1,6 @@
 package gui;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import connection.ChatConnection;
@@ -11,7 +12,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.Date;
 
@@ -88,7 +91,14 @@ public class ChatFrame extends JFrame implements ActionListener{
         this.setSize(800, 600); //initial size
         this.setLocationRelativeTo(null); //centralize window
         this.setBackground(Color.white);
-        // setIconjanela
+        
+        // sets window icon
+        try {
+            BufferedImage icon = ImageIO.read(new File("resources\\icons\\chat_icon.png")); // Loads image
+            setIconImage(icon); // Sets the image as the window icon
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         
         //case where user just click on X button
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
@@ -96,7 +106,10 @@ public class ChatFrame extends JFrame implements ActionListener{
             public void windowClosing(WindowEvent e) {
                 int option = JOptionPane.showConfirmDialog(ChatFrame.this, "Are you sure?", "Exit", JOptionPane.YES_NO_OPTION);
                 if (option == JOptionPane.YES_OPTION) {
-                	ChatConnection.disconnect();
+                	if(getUserInfo() != null && ChatConnection.getClientSocket() != null) {
+                    	ChatConnection.sendMessage(new ChatDTO(getUserInfo().getUsername(), "disconneted.", new Date()));
+                    	ChatConnection.disconnect();
+                	}
                     System.exit(0);
                 }
             }
@@ -185,7 +198,10 @@ public class ChatFrame extends JFrame implements ActionListener{
         if(event.getSource() == exitItem) {
         	int option = JOptionPane.showConfirmDialog(ChatFrame.this, "Are you sure?", "Exit", JOptionPane.YES_NO_OPTION);
             if (option == JOptionPane.YES_OPTION) {
-            	ChatConnection.disconnect();
+            	if(getUserInfo() != null && ChatConnection.getClientSocket() != null) {
+                	ChatConnection.sendMessage(new ChatDTO(getUserInfo().getUsername(), "disconneted.", new Date()));
+                	ChatConnection.disconnect();
+            	}
                 System.exit(0);
             }
         }
@@ -417,7 +433,7 @@ public class ChatFrame extends JFrame implements ActionListener{
     	    }
     	});
     	
-    	ImageIcon originalIcon = new ImageIcon("..\\Projeto III - Chat Online\\icon\\6583130.png"); // Substitua pelo caminho do seu ícone
+    	ImageIcon originalIcon = new ImageIcon("..\\Projeto III - Chat Online\\resources\\icons\\6583130.png"); // Substitua pelo caminho do seu ícone
     	// Obtenha a imagem do ícone original
     	Image originalImage = originalIcon.getImage();
 
