@@ -1,5 +1,7 @@
 package gui;
 
+import java.net.URL;
+
 /**
  * The GlobalConstants class holds constant values used throughout the application.
  */
@@ -10,11 +12,11 @@ class GlobalConstants {
     public static final String MIGUEL = "Miguel Miranda Melo Donanzam | 260851";
     public static final String PEDRO = "Pedro Canegusuco De Mendonça | 223238";
 
-    public static final String FELIPE_IMAGE_PATH = "..\\Online-Chatting-Software\\images\\Felipe.png";
-    public static final String JULIO_IMAGE_PATH = "..\\Online-Chatting-Software\\images\\Julio.png";
-    public static final String LORENA_IMAGE_PATH = "..\\Online-Chatting-Software\\images\\Lorena.jpeg";
-    public static final String MIGUEL_IMAGE_PATH = "..\\Online-Chatting-Software\\images\\Miguel.png";
-    public static final String PEDRO_IMAGE_PATH = "..\\Online-Chatting-Software\\images\\Pedro.png";
+    public static final String FELIPE_IMAGE_PATH = "resources\\images\\Felipe.png";
+    public static final String JULIO_IMAGE_PATH = "resources\\images\\Julio.png";
+    public static final String LORENA_IMAGE_PATH = "resources\\images\\Lorena.jpeg";
+    public static final String MIGUEL_IMAGE_PATH = "resources\\images\\Miguel.png";
+    public static final String PEDRO_IMAGE_PATH = "resources\\images\\Pedro.png";
 
     public static final String SOFTWARE_NAME = "A5 - Online Chatting Software";
     public static final String VERSION = "Ver. 1.0.1";
