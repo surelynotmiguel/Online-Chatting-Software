@@ -1,4 +1,4 @@
-package gui;
+package gui.dialog;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -13,6 +13,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Image;
+import gui.GlobalConstants;
 
 /**
  * The AboutDialog class represents a dialog box displaying information about the application.

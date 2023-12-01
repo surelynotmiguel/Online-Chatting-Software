@@ -1,9 +1,12 @@
-package gui;
+package gui.dialog;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.border.EmptyBorder;
+
+import gui.GlobalConstants;
+
 import java.awt.FlowLayout;
 
 /**

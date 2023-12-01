@@ -5,6 +5,9 @@ import javax.swing.*;
 
 import connection.ChatConnection;
 import dto.ChatDTO;
+import gui.dialog.AboutDialog;
+import gui.dialog.ConnectionDialog;
+import gui.dialog.HelpDialog;
 import connection.filehandler.FileSender;
 
 import java.awt.*;
@@ -433,7 +436,7 @@ public class ChatFrame extends JFrame implements ActionListener{
     	    }
     	});
     	
-    	ImageIcon originalIcon = new ImageIcon("..\\Projeto III - Chat Online\\resources\\icons\\6583130.png"); // Substitua pelo caminho do seu ícone
+    	ImageIcon originalIcon = new ImageIcon("resources\\icons\\6583130.png"); // Substitua pelo caminho do seu ícone
     	// Obtenha a imagem do ícone original
     	Image originalImage = originalIcon.getImage();
 

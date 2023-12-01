@@ -1,9 +1,11 @@
-package gui;
+package gui.dialog;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import connection.ChatConnection;
 import dto.ChatDTO;
+import gui.ChatFrame;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

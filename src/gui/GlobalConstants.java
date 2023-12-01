@@ -3,7 +3,7 @@ package gui;
 /**
  * The GlobalConstants class holds constant values used throughout the application.
  */
-class GlobalConstants {
+public class GlobalConstants {
     public static final String FELIPE = "Felipe Akira Nozaki | 172885";
     public static final String JULIO = "Julio Morino Anastácio | 173434";
     public static final String LORENA = "Lorena Eduarda Santos Vieira | 178806";
